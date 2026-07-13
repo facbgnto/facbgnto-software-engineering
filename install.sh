@@ -5,6 +5,8 @@ PROJECT_PATH="${1:-}"
 FORCE="${FORCE:-false}"
 INSTALL_GRAPHIFY="${INSTALL_GRAPHIFY:-false}"
 INDEX_GRAPHIFY="${INDEX_GRAPHIFY:-false}"
+INSTALL_DOCUMENTATION_TOOLS="${INSTALL_DOCUMENTATION_TOOLS:-false}"
+INITIALIZE_DOCUMENTATION="${INITIALIZE_DOCUMENTATION:-false}"
 
 if [[ -z "$PROJECT_PATH" ]]; then
   echo "Uso: ./install.sh /ruta/al/proyecto"
@@ -63,6 +65,24 @@ fi
 
 if [[ "$INDEX_GRAPHIFY" == "true" ]]; then
   "$SOURCE_ROOT/graph.sh" "$PROJECT_PATH"
+fi
+
+
+
+if [[ "$INSTALL_DOCUMENTATION_TOOLS" == "true" ]]; then
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm no está disponible. Instala Node.js."
+    exit 1
+  fi
+  npm install -g @mermaid-js/mermaid-cli@latest
+fi
+
+if [[ "$INITIALIZE_DOCUMENTATION" == "true" ]]; then
+  if [[ "$INSTALL_DOCUMENTATION_TOOLS" == "true" ]]; then
+    RENDER_DIAGRAMS=true "$SOURCE_ROOT/docs.sh" "$PROJECT_PATH"
+  else
+    "$SOURCE_ROOT/docs.sh" "$PROJECT_PATH"
+  fi
 fi
 
 

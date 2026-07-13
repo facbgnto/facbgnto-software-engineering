@@ -30,6 +30,7 @@ check_tool npm false
 check_tool python true
 check_tool uv false
 check_tool graphify false
+check_tool mmdc false
 check_tool ollama false
 check_tool docker false
 

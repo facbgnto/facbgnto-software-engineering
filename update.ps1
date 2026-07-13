@@ -3,6 +3,8 @@ param(
     [switch]$UpdateExternalTools,
     [switch]$UpdateGraphify,
     [switch]$ReindexGraphify,
+    [switch]$UpdateDocumentationTools,
+    [switch]$RegenerateDocumentation,
     [switch]$SkipGitPull,
     [switch]$Force
 )
@@ -95,6 +97,25 @@ if ($ReindexGraphify) {
 
     $GraphScript = Join-Path $Root "graph.ps1"
     & $GraphScript -ProjectPath $ProjectPath -Force:$Force
+}
+
+
+if ($UpdateDocumentationTools) {
+    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+        throw "npm no está disponible; no se puede actualizar Mermaid CLI."
+    }
+    npm install -g @mermaid-js/mermaid-cli@latest
+}
+
+if ($RegenerateDocumentation) {
+    if (-not $ProjectPath) {
+        throw "-RegenerateDocumentation requiere -ProjectPath."
+    }
+
+    $DocsScript = Join-Path $Root "docs.ps1"
+    & $DocsScript -ProjectPath $ProjectPath
+    $DiagramScript = Join-Path $Root "diagrams.ps1"
+    & $DiagramScript -ProjectPath $ProjectPath -Force
 }
 
 Write-Host ""

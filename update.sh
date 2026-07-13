@@ -8,6 +8,8 @@ SKIP_GIT_PULL="${SKIP_GIT_PULL:-false}"
 FORCE="${FORCE:-true}"
 UPDATE_GRAPHIFY="${UPDATE_GRAPHIFY:-false}"
 REINDEX_GRAPHIFY="${REINDEX_GRAPHIFY:-false}"
+UPDATE_DOCUMENTATION_TOOLS="${UPDATE_DOCUMENTATION_TOOLS:-false}"
+REGENERATE_DOCUMENTATION="${REGENERATE_DOCUMENTATION:-false}"
 
 git_update() {
   local repo="$1"
@@ -78,6 +80,25 @@ if [[ "$REINDEX_GRAPHIFY" == "true" ]]; then
     exit 1
   fi
   FORCE="$FORCE" "$ROOT/graph.sh" "$PROJECT_PATH"
+fi
+
+
+
+if [[ "$UPDATE_DOCUMENTATION_TOOLS" == "true" ]]; then
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm no está disponible; no se puede actualizar Mermaid CLI."
+    exit 1
+  fi
+  npm install -g @mermaid-js/mermaid-cli@latest
+fi
+
+if [[ "$REGENERATE_DOCUMENTATION" == "true" ]]; then
+  if [[ -z "$PROJECT_PATH" ]]; then
+    echo "REGENERATE_DOCUMENTATION=true requiere una ruta de proyecto."
+    exit 1
+  fi
+  "$ROOT/docs.sh" "$PROJECT_PATH"
+  FORCE=true "$ROOT/diagrams.sh" "$PROJECT_PATH"
 fi
 
 

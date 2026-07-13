@@ -87,6 +87,10 @@ facbgnto-software-engineering/
 ├── graph.sh
 ├── doctor.ps1
 ├── doctor.sh
+├── docs.ps1
+├── docs.sh
+├── diagrams.ps1
+├── diagrams.sh
 ├── templates/
 │   └── .graphifyignore
 ├── skills/
@@ -426,6 +430,53 @@ Se recomienda para:
 - revisión de anti-patrones UI/UX.
 
 ---
+
+
+# 📚 Documentación y diagramas
+
+Inicializar documentación técnica y diagramas:
+
+```powershell
+.\docs.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -RenderDiagrams
+```
+
+Instalar Mermaid CLI e inicializar todo durante la instalación:
+
+```powershell
+.\install.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -InstallDocumentationTools `
+  -InitializeDocumentation
+```
+
+Renderizar o validar diagramas:
+
+```powershell
+.\diagrams.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto"
+```
+
+```powershell
+.\diagrams.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -CheckOnly
+```
+
+Se crean plantillas para:
+
+- contexto C4;
+- contenedores;
+- componentes;
+- secuencias;
+- despliegue;
+- flujo de datos;
+- entidad-relación;
+- documentación de arquitectura, API, seguridad, pruebas y operación;
+- decisiones arquitectónicas ADR.
+
+Para arquitectura C4 formal también se incluye una plantilla `workspace.dsl` para Structurizr.
 
 # 🔐 Seguridad
 

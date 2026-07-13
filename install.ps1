@@ -9,6 +9,8 @@ param(
     [switch]$InstallLightRAG,
     [switch]$InstallGraphify,
     [switch]$IndexGraphify,
+    [switch]$InstallDocumentationTools,
+    [switch]$InitializeDocumentation,
     [switch]$Force
 )
 
@@ -177,6 +179,21 @@ if ($IndexGraphify) {
 
     $GraphScript = Join-Path $SourceRoot "graph.ps1"
     & $GraphScript -ProjectPath $ResolvedProject -Force:$Force
+}
+
+
+if ($InstallDocumentationTools) {
+    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+        throw "npm no está disponible. Instala Node.js antes de instalar Mermaid CLI."
+    }
+
+    Write-Host "Instalando o actualizando Mermaid CLI..." -ForegroundColor Cyan
+    npm install -g @mermaid-js/mermaid-cli@latest
+}
+
+if ($InitializeDocumentation) {
+    $DocsScript = Join-Path $SourceRoot "docs.ps1"
+    & $DocsScript -ProjectPath $ResolvedProject -RenderDiagrams:$InstallDocumentationTools
 }
 
 Write-Host ""

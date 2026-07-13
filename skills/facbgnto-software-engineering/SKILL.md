@@ -218,6 +218,20 @@ Si están instalados:
 - Este skill actúa como coordinador y las reglas específicas del proyecto prevalecen.
 - No ejecutes dos metodologías duplicadas; selecciona la más adecuada y conserva un único plan.
 
+
+## Documentación y diagramas
+
+Para tareas significativas:
+
+- Mantén documentación como código dentro de `docs/`.
+- Actualiza diagramas C4, componentes, secuencia, despliegue, flujo de datos y entidad-relación cuando sean afectados.
+- Usa Mermaid para diagramas simples y versionables.
+- Usa Structurizr cuando el proyecto requiera un modelo C4 formal.
+- Usa SchemaSpy para documentación navegable de bases de datos cuando sea viable.
+- Registra decisiones arquitectónicas mediante ADR.
+- Ejecuta `diagrams.ps1 -CheckOnly` o `diagrams.sh` antes de finalizar.
+- No generes diagramas inventados: deben reflejar archivos, infraestructura y contratos inspeccionados.
+
 ## Salida final
 
 Entrega:

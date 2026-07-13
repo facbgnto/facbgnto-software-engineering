@@ -38,6 +38,7 @@ Test-Tool "npm" { npm --version }
 Test-Tool "python" { python --version } $true
 Test-Tool "uv" { uv --version }
 Test-Tool "graphify" { graphify --version }
+Test-Tool "mmdc" { mmdc --version }
 Test-Tool "ollama" { ollama --version }
 Test-Tool "docker" { docker --version }
 
