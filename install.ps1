@@ -7,6 +7,8 @@ param(
     [switch]$InstallUIUXProMax,
     [switch]$InstallEverythingClaudeCodeZH,
     [switch]$InstallLightRAG,
+    [switch]$InstallGraphify,
+    [switch]$IndexGraphify,
     [switch]$Force
 )
 
@@ -142,6 +144,39 @@ if ($InstallLightRAG) {
     }
 
     Write-Host "LightRAG descargado y plantilla creada en tools\lightrag." -ForegroundColor Cyan
+}
+
+
+if ($InstallGraphify) {
+    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+        throw "uv no está instalado. Instálalo desde https://docs.astral.sh/uv/ y vuelve a ejecutar."
+    }
+
+    if (Get-Command graphify -ErrorAction SilentlyContinue) {
+        Write-Host "Actualizando Graphify..." -ForegroundColor Cyan
+        uv tool upgrade graphifyy
+    }
+    else {
+        Write-Host "Instalando Graphify..." -ForegroundColor Cyan
+        uv tool install graphifyy
+    }
+
+    $GraphifyIgnoreSource = Join-Path $SourceRoot "templates\.graphifyignore"
+    $GraphifyIgnoreDestination = Join-Path $ResolvedProject ".graphifyignore"
+
+    if (-not (Test-Path $GraphifyIgnoreDestination) -or $Force) {
+        Copy-Item -Force $GraphifyIgnoreSource $GraphifyIgnoreDestination
+        Write-Host "Creado: $GraphifyIgnoreDestination" -ForegroundColor Green
+    }
+}
+
+if ($IndexGraphify) {
+    if (-not (Get-Command graphify -ErrorAction SilentlyContinue)) {
+        throw "Graphify no está disponible. Usa también -InstallGraphify."
+    }
+
+    $GraphScript = Join-Path $SourceRoot "graph.ps1"
+    & $GraphScript -ProjectPath $ResolvedProject -Force:$Force
 }
 
 Write-Host ""

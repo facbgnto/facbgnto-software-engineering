@@ -6,6 +6,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UPDATE_EXTERNAL_TOOLS="${UPDATE_EXTERNAL_TOOLS:-false}"
 SKIP_GIT_PULL="${SKIP_GIT_PULL:-false}"
 FORCE="${FORCE:-true}"
+UPDATE_GRAPHIFY="${UPDATE_GRAPHIFY:-false}"
+REINDEX_GRAPHIFY="${REINDEX_GRAPHIFY:-false}"
 
 git_update() {
   local repo="$1"
@@ -50,9 +52,33 @@ if [[ "$UPDATE_EXTERNAL_TOOLS" == "true" ]]; then
   fi
 fi
 
+
+if [[ "$UPDATE_GRAPHIFY" == "true" ]]; then
+  if ! command -v uv >/dev/null 2>&1; then
+    echo "uv no está instalado; no se puede actualizar Graphify."
+    exit 1
+  fi
+
+  if command -v graphify >/dev/null 2>&1; then
+    uv tool upgrade graphifyy
+  else
+    uv tool install graphifyy
+  fi
+fi
+
 if [[ -n "$PROJECT_PATH" ]]; then
   echo "Reinstalando skill en $PROJECT_PATH..."
   FORCE="$FORCE" "$ROOT/install.sh" "$PROJECT_PATH"
 fi
+
+
+if [[ "$REINDEX_GRAPHIFY" == "true" ]]; then
+  if [[ -z "$PROJECT_PATH" ]]; then
+    echo "REINDEX_GRAPHIFY=true requiere una ruta de proyecto."
+    exit 1
+  fi
+  FORCE="$FORCE" "$ROOT/graph.sh" "$PROJECT_PATH"
+fi
+
 
 echo "Actualización completada."

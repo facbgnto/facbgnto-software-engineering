@@ -83,6 +83,12 @@ facbgnto-software-engineering/
 ├── install.sh
 ├── update.ps1
 ├── update.sh
+├── graph.ps1
+├── graph.sh
+├── doctor.ps1
+├── doctor.sh
+├── templates/
+│   └── .graphifyignore
 ├── skills/
 │   └── facbgnto-software-engineering/
 │       ├── SKILL.md
@@ -150,7 +156,9 @@ cd facbgnto-software-engineering
   -InstallAgentSkills `
   -InstallUIUXProMax `
   -InstallEverythingClaudeCodeZH `
-  -InstallLightRAG
+  -InstallLightRAG `
+  -InstallGraphify `
+  -IndexGraphify
 ```
 
 ### 4. Reemplazar una instalación existente
@@ -303,6 +311,43 @@ No afirmes que funciona sin mostrar las validaciones realizadas.
 ---
 
 # 🕸 Graphify
+
+
+## Instalar e indexar Graphify
+
+```powershell
+.\install.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -InstallGraphify `
+  -IndexGraphify
+```
+
+Indexar nuevamente:
+
+```powershell
+.\graph.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -Force
+```
+
+Comprobar dependencias e instalación:
+
+```powershell
+.\doctor.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto"
+```
+
+Actualizar Graphify y reconstruir el índice:
+
+```powershell
+.\update.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -UpdateGraphify `
+  -ReindexGraphify
+```
+
+La indexación predeterminada utiliza `--code-only`, por lo que no requiere una API LLM.
+
 
 Graphify ayuda a localizar:
 

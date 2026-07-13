@@ -71,7 +71,9 @@ Antes de proponer cambios:
 - Detecta stack, comandos, convenciones y estructura.
 - Busca implementaciones similares.
 - Identifica contratos, permisos, validaciones y efectos laterales.
-- Si Graphify está disponible y el repositorio ya fue indexado, úsalo como ayuda de navegación.
+- Si Graphify está disponible, verifica que exista `.graphifyignore` y que el índice esté actualizado.
+- Para cambios significativos, consulta Graphify antes de definir los archivos afectados.
+- Usa `graph.ps1` o `graph.sh` para reconstruir el índice cuando el código haya cambiado de forma relevante.
 - Confirma siempre los hallazgos leyendo los archivos fuente.
 
 Graphify no reemplaza la inspección del código.

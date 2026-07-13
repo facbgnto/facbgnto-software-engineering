@@ -3,6 +3,8 @@ set -euo pipefail
 
 PROJECT_PATH="${1:-}"
 FORCE="${FORCE:-false}"
+INSTALL_GRAPHIFY="${INSTALL_GRAPHIFY:-false}"
+INDEX_GRAPHIFY="${INDEX_GRAPHIFY:-false}"
 
 if [[ -z "$PROJECT_PATH" ]]; then
   echo "Uso: ./install.sh /ruta/al/proyecto"
@@ -41,5 +43,27 @@ if [[ ! -f "$PROJECT_PATH/AGENTS.md" || "$FORCE" == "true" ]]; then
 else
   echo "AGENTS.md ya existe; no fue reemplazado."
 fi
+
+
+if [[ "$INSTALL_GRAPHIFY" == "true" ]]; then
+  if ! command -v uv >/dev/null 2>&1; then
+    echo "uv no está instalado. Instálalo desde https://docs.astral.sh/uv/"
+    exit 1
+  fi
+
+  if command -v graphify >/dev/null 2>&1; then
+    uv tool upgrade graphifyy
+  else
+    uv tool install graphifyy
+  fi
+
+  cp "$SOURCE_ROOT/templates/.graphifyignore" "$PROJECT_PATH/.graphifyignore"
+  echo "Creado: $PROJECT_PATH/.graphifyignore"
+fi
+
+if [[ "$INDEX_GRAPHIFY" == "true" ]]; then
+  "$SOURCE_ROOT/graph.sh" "$PROJECT_PATH"
+fi
+
 
 echo "Instalación completada."

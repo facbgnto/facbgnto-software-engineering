@@ -1,6 +1,8 @@
 param(
     [string]$ProjectPath,
     [switch]$UpdateExternalTools,
+    [switch]$UpdateGraphify,
+    [switch]$ReindexGraphify,
     [switch]$SkipGitPull,
     [switch]$Force
 )
@@ -60,6 +62,20 @@ if ($UpdateExternalTools) {
     }
 }
 
+
+if ($UpdateGraphify) {
+    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+        throw "uv no está instalado; no se puede actualizar Graphify."
+    }
+
+    if (Get-Command graphify -ErrorAction SilentlyContinue) {
+        uv tool upgrade graphifyy
+    }
+    else {
+        uv tool install graphifyy
+    }
+}
+
 if ($ProjectPath) {
     $InstallScript = Join-Path $Root "install.ps1"
     $Arguments = @{
@@ -69,6 +85,16 @@ if ($ProjectPath) {
 
     Write-Host "Reinstalando skill en $ProjectPath..." -ForegroundColor Cyan
     & $InstallScript @Arguments
+}
+
+
+if ($ReindexGraphify) {
+    if (-not $ProjectPath) {
+        throw "-ReindexGraphify requiere -ProjectPath."
+    }
+
+    $GraphScript = Join-Path $Root "graph.ps1"
+    & $GraphScript -ProjectPath $ProjectPath -Force:$Force
 }
 
 Write-Host ""
