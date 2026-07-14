@@ -97,6 +97,8 @@ facbgnto-software-engineering/
 ├── skill-scan.sh
 ├── skill-activity.ps1
 ├── skill-activity.sh
+├── security-report.ps1
+├── security-report.sh
 ├── templates/
 │   └── .graphifyignore
 ├── skills/
@@ -628,3 +630,50 @@ INSTALL_SECURITY=true \
 INSTALL_SECURITY_WORKFLOW=true \
 ./install.sh /ruta/al/proyecto
 ```
+
+# 📊 Informes profesionales de seguridad
+
+Crear un paquete completo:
+
+```powershell
+.\security-report.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -ReportName "2026-07-14-authentication"
+```
+
+Incluye:
+
+- informe técnico;
+- resumen ejecutivo;
+- métricas JSON;
+- matriz de riesgo;
+- OWASP, ASVS y CWE;
+- CVSS cuando corresponda;
+- evidencias sanitizadas;
+- controles correctos;
+- riesgo residual;
+- plan de remediación;
+- próximas auditorías;
+- historial de revisiones.
+
+## Actualizar Deportivox
+
+```powershell
+.\update.ps1 `
+  -UpdateDeportivox `
+  -DeportivoxPath "C:\repositorio\deportivox 2" `
+  -UpdateSecurity `
+  -UpdateSecurityWorkflow
+```
+
+Actualizar e inicializar un informe:
+
+```powershell
+.\update.ps1 `
+  -UpdateDeportivox `
+  -DeportivoxPath "C:\repositorio\deportivox 2" `
+  -InitializeSecurityReports `
+  -SecurityReportName "2026-07-14-authentication"
+```
+
+El proceso no modifica los repositorios internos `deportivox-backend` ni `deportivox-front`.

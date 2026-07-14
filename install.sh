@@ -9,6 +9,8 @@ INSTALL_DOCUMENTATION_TOOLS="${INSTALL_DOCUMENTATION_TOOLS:-false}"
 INITIALIZE_DOCUMENTATION="${INITIALIZE_DOCUMENTATION:-false}"
 INSTALL_SECURITY="${INSTALL_SECURITY:-false}"
 INSTALL_SECURITY_WORKFLOW="${INSTALL_SECURITY_WORKFLOW:-false}"
+INITIALIZE_SECURITY_REPORTS="${INITIALIZE_SECURITY_REPORTS:-false}"
+SECURITY_REPORT_NAME="${SECURITY_REPORT_NAME:-}"
 
 if [[ -z "$PROJECT_PATH" || ! -d "$PROJECT_PATH" ]]; then
   echo "Uso: ./install.sh /ruta/al/proyecto"
@@ -112,5 +114,14 @@ if [[ "$INSTALL_SECURITY_WORKFLOW" == "true" ]]; then
     "$SOURCE_ROOT/templates/github/workflows/security.yml" \
     "$PROJECT_PATH/.github/workflows/security.yml"
 fi
+
+if [[ "$INITIALIZE_SECURITY_REPORTS" == "true" ]]; then
+  if [[ -n "$SECURITY_REPORT_NAME" ]]; then
+    REPORT_NAME="$SECURITY_REPORT_NAME" FORCE="$FORCE" "$SOURCE_ROOT/security-report.sh" "$PROJECT_PATH"
+  else
+    FORCE="$FORCE" "$SOURCE_ROOT/security-report.sh" "$PROJECT_PATH"
+  fi
+fi
+
 
 echo "Instalación completada en: $PROJECT_PATH"

@@ -13,6 +13,8 @@ param(
     [switch]$InitializeDocumentation,
     [switch]$InstallSecurity,
     [switch]$InstallSecurityWorkflow,
+    [switch]$InitializeSecurityReports,
+    [string]$SecurityReportName,
     [switch]$Force
 )
 
@@ -245,6 +247,21 @@ if ($InstallSecurityWorkflow) {
     Copy-TemplateFile `
         -Source (Join-Path $SourceRoot "templates\github\workflows\security.yml") `
         -Destination (Join-Path $ResolvedProject ".github\workflows\security.yml")
+}
+
+if ($InitializeSecurityReports) {
+    $SecurityReportScript = Join-Path $SourceRoot "security-report.ps1"
+
+    $ReportArguments = @{
+        ProjectPath = $ResolvedProject
+        Force = $Force
+    }
+
+    if ($SecurityReportName) {
+        $ReportArguments.ReportName = $SecurityReportName
+    }
+
+    & $SecurityReportScript @ReportArguments
 }
 
 Write-Host ""

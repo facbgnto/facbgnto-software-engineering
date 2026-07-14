@@ -39,7 +39,7 @@ if (-not (Test-Path $ReportFile)) {
     Set-Content `
         -Path $ReportFile `
         -Encoding UTF8 `
-        -Value "# Registro de actividad de skills - $Date"
+        -Value "# Registro de actividad de skills — $Date"
 }
 
 $ToolText = if ($Tools.Count -gt 0) {
@@ -51,7 +51,7 @@ else {
 
 $Entry = @(
     "",
-    "## $Timestamp - $Action",
+    "## $Timestamp — $Action",
     "",
     "- Skill: $Skill",
     "- Motivo: $Reason",

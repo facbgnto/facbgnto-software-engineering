@@ -77,3 +77,40 @@ Herramientas ejecutadas:
 Limitaciones:
 - cobertura no ejecutada
 ```
+
+## Formato profesional obligatorio
+
+Para revisiones significativas usa el paquete creado por:
+
+```powershell
+.\security-report.ps1 -ProjectPath "<proyecto>" -ReportName "<fecha-modulo>"
+```
+
+El paquete debe contener:
+
+- `security-report.md`;
+- `executive-summary.md`;
+- `remediation-plan.md`;
+- `risk-matrix.md`;
+- `metrics.json`;
+- `review-history.md`;
+- `evidence/`.
+
+El informe principal debe incluir:
+
+- resumen ejecutivo;
+- métricas de cobertura;
+- arquitectura y superficie de ataque;
+- matriz de riesgo;
+- mapeo OWASP, ASVS y CWE;
+- CVSS cuando corresponda;
+- evidencia sanitizada;
+- falsos positivos;
+- controles correctos;
+- DevSecOps y cadena de suministro;
+- riesgo residual;
+- plan de remediación;
+- próximas auditorías;
+- historial de revisiones.
+
+No afirmes cumplimiento normativo completo a partir de una revisión parcial.
