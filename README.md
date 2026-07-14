@@ -600,3 +600,31 @@ Desarrollado por **FACBGNTO**
 ⭐ Marca el repositorio con una estrella si te resulta útil.
 
 </div>
+
+
+---
+
+## Validar scripts PowerShell
+
+Antes de subir cambios:
+
+```powershell
+.\validate-scripts.ps1
+```
+
+Para instalar seguridad:
+
+```powershell
+.\install.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -InstallSecurity `
+  -InstallSecurityWorkflow
+```
+
+En Linux/macOS:
+
+```bash
+INSTALL_SECURITY=true \
+INSTALL_SECURITY_WORKFLOW=true \
+./install.sh /ruta/al/proyecto
+```

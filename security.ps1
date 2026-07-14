@@ -1,65 +1,197 @@
 param(
-  [Parameter(Mandatory=$true)][string]$ProjectPath,
-  [switch]$RunGitleaks,
-  [switch]$RunSemgrep,
-  [switch]$RunDependencyAudit,
-  [switch]$GenerateReport,
-  [switch]$FailOnFindings
+    [Parameter(Mandatory = $true)]
+    [string]$ProjectPath,
+
+    [switch]$RunGitleaks,
+    [switch]$RunSemgrep,
+    [switch]$RunDependencyAudit,
+    [switch]$GenerateReport,
+    [switch]$FailOnFindings
 )
 
-$ErrorActionPreference="Continue"
-$root=Split-Path -Parent $MyInvocation.MyCommand.Path
-$project=[System.IO.Path]::GetFullPath($ProjectPath)
-if(-not(Test-Path $project)){throw "No existe el proyecto: $project"}
+$ErrorActionPreference = "Continue"
+$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ResolvedProject = [System.IO.Path]::GetFullPath($ProjectPath)
 
-& (Join-Path $root "skill-activity.ps1") -ProjectPath $project -Skill "facbgnto-security-review" -Action start -Reason "Revisión automatizada"
-
-$results=@()
-$failed=$false
-
-function Add-Result($tool,$command,$code,$output){
-  $script:results += [PSCustomObject]@{Tool=$tool;Command=$command;Code=$code;Output=$output}
-  if($code -ne 0){$script:failed=$true}
+if (-not (Test-Path $ResolvedProject)) {
+    throw "No existe el proyecto: $ResolvedProject"
 }
 
-if($RunGitleaks){
-  if(Get-Command gitleaks -ErrorAction SilentlyContinue){
-    $out=& gitleaks detect --source $project --no-banner --redact 2>&1 | Out-String
-    Add-Result "Gitleaks" "gitleaks detect --source <project> --no-banner --redact" $LASTEXITCODE $out
-  } else { Add-Result "Gitleaks" "not installed" 127 "Gitleaks no instalado." }
+& (Join-Path $Root "skill-activity.ps1") `
+    -ProjectPath $ResolvedProject `
+    -Skill "facbgnto-security-review" `
+    -Action start `
+    -Reason "Revisión automatizada de seguridad"
+
+$Results = @()
+$HasFindings = $false
+
+function Add-SecurityResult {
+    param(
+        [string]$Tool,
+        [string]$Command,
+        [int]$ExitCode,
+        [string]$Output
+    )
+
+    $script:Results += [PSCustomObject]@{
+        Tool = $Tool
+        Command = $Command
+        ExitCode = $ExitCode
+        Output = $Output
+    }
+
+    if ($ExitCode -ne 0) {
+        $script:HasFindings = $true
+    }
 }
 
-if($RunSemgrep){
-  if(Get-Command semgrep -ErrorAction SilentlyContinue){
-    $cfg=Join-Path $project ".semgrep.yml"
-    $args=@("scan","--config","auto")
-    if(Test-Path $cfg){$args+=@("--config",$cfg)}
-    $args+=$project
-    $out=& semgrep @args 2>&1 | Out-String
-    Add-Result "Semgrep" ("semgrep "+($args -join " ")) $LASTEXITCODE $out
-  } else { Add-Result "Semgrep" "not installed" 127 "Semgrep no instalado." }
+if ($RunGitleaks) {
+    if (Get-Command gitleaks -ErrorAction SilentlyContinue) {
+        $Output = & gitleaks detect `
+            --source $ResolvedProject `
+            --no-banner `
+            --redact 2>&1 | Out-String
+
+        Add-SecurityResult `
+            -Tool "Gitleaks" `
+            -Command "gitleaks detect --source <project> --no-banner --redact" `
+            -ExitCode $LASTEXITCODE `
+            -Output $Output
+    }
+    else {
+        Add-SecurityResult `
+            -Tool "Gitleaks" `
+            -Command "gitleaks" `
+            -ExitCode 127 `
+            -Output "Gitleaks no está instalado."
+    }
 }
 
-if($RunDependencyAudit -and (Test-Path (Join-Path $project "package.json"))){
-  Push-Location $project
-  try{
-    $out=& npm audit --audit-level=high 2>&1 | Out-String
-    Add-Result "npm audit" "npm audit --audit-level=high" $LASTEXITCODE $out
-  } finally { Pop-Location }
+if ($RunSemgrep) {
+    if (Get-Command semgrep -ErrorAction SilentlyContinue) {
+        $Arguments = @("scan", "--config", "auto")
+        $LocalConfig = Join-Path $ResolvedProject ".semgrep.yml"
+
+        if (Test-Path $LocalConfig) {
+            $Arguments += @("--config", $LocalConfig)
+        }
+
+        $Arguments += $ResolvedProject
+
+        $Output = & semgrep @Arguments 2>&1 | Out-String
+
+        Add-SecurityResult `
+            -Tool "Semgrep" `
+            -Command ("semgrep " + ($Arguments -join " ")) `
+            -ExitCode $LASTEXITCODE `
+            -Output $Output
+    }
+    else {
+        Add-SecurityResult `
+            -Tool "Semgrep" `
+            -Command "semgrep" `
+            -ExitCode 127 `
+            -Output "Semgrep no está instalado."
+    }
 }
 
-if($GenerateReport -or $results.Count -gt 0){
-  $folder=Join-Path $project "reports\security"
-  New-Item -ItemType Directory -Force -Path $folder | Out-Null
-  $file=Join-Path $folder ("security-"+(Get-Date -Format "yyyyMMdd-HHmmss")+".md")
-  $lines=@("# Informe automatizado de seguridad","","- Fecha: $(Get-Date -Format o)","- Skill: facbgnto-security-review","","## Resultados")
-  foreach($r in $results){
-    $lines+=@("","### $($r.Tool)","- Comando: ``$($r.Command)``","- Código: $($r.Code)","","```text",$r.Output.Trim(),"```")
-  }
-  $lines+=@("","## Estado",$(if($failed){"REVIEW_REQUIRED"}else{"PASSED_AUTOMATED_CHECKS"}),"","Los resultados automáticos requieren revisión manual.")
-  $lines -join "`n" | Set-Content $file -Encoding UTF8
-  Write-Host "Informe generado: $file" -ForegroundColor Green
+if ($RunDependencyAudit) {
+    $PackageJson = Join-Path $ResolvedProject "package.json"
+
+    if ((Test-Path $PackageJson) -and (Get-Command npm -ErrorAction SilentlyContinue)) {
+        Push-Location $ResolvedProject
+        try {
+            $Output = & npm audit --audit-level=high 2>&1 | Out-String
+
+            Add-SecurityResult `
+                -Tool "npm audit" `
+                -Command "npm audit --audit-level=high" `
+                -ExitCode $LASTEXITCODE `
+                -Output $Output
+        }
+        finally {
+            Pop-Location
+        }
+    }
+    else {
+        Add-SecurityResult `
+            -Tool "Dependency audit" `
+            -Command "npm audit" `
+            -ExitCode 0 `
+            -Output "No se detectó package.json o npm."
+    }
 }
 
-& (Join-Path $root "skill-activity.ps1") -ProjectPath $project -Skill "facbgnto-security-review" -Action finish -Reason "Revisión finalizada"
-if($FailOnFindings -and $failed){exit 1}
+if ($GenerateReport -or $Results.Count -gt 0) {
+    $ReportRoot = Join-Path $ResolvedProject "reports\security"
+    New-Item -ItemType Directory -Force -Path $ReportRoot | Out-Null
+
+    $ReportFile = Join-Path $ReportRoot (
+        "security-{0}.md" -f (Get-Date -Format "yyyyMMdd-HHmmss")
+    )
+
+    $Lines = @(
+        "# Informe automatizado de seguridad",
+        "",
+        "- Fecha: $(Get-Date -Format o)",
+        "- Proyecto: $ResolvedProject",
+        "- Skill: facbgnto-security-review",
+        "",
+        "## Resultados"
+    )
+
+    foreach ($Result in $Results) {
+        $SafeOutput = $Result.Output
+
+        if ($SafeOutput.Length -gt 12000) {
+            $SafeOutput = $SafeOutput.Substring(0, 12000) + "`n[Salida truncada]"
+        }
+
+        $Lines += @(
+            "",
+            "### $($Result.Tool)",
+            "",
+            "- Comando: ``$($Result.Command)``",
+            "- Código de salida: $($Result.ExitCode)",
+            "",
+            '```text',
+            $SafeOutput.Trim(),
+            '```'
+        )
+    }
+
+    $Status = if ($HasFindings) {
+        "REVIEW_REQUIRED"
+    }
+    else {
+        "PASSED_AUTOMATED_CHECKS"
+    }
+
+    $Lines += @(
+        "",
+        "## Estado",
+        "",
+        $Status,
+        "",
+        "Los resultados automáticos requieren revisión manual."
+    )
+
+    Set-Content `
+        -Path $ReportFile `
+        -Encoding UTF8 `
+        -Value ($Lines -join [Environment]::NewLine)
+
+    Write-Host "Informe generado: $ReportFile" -ForegroundColor Green
+}
+
+& (Join-Path $Root "skill-activity.ps1") `
+    -ProjectPath $ResolvedProject `
+    -Skill "facbgnto-security-review" `
+    -Action finish `
+    -Reason "Revisión automatizada finalizada" `
+    -Tools ($Results.Tool)
+
+if ($FailOnFindings -and $HasFindings) {
+    exit 1
+}

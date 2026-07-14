@@ -19,19 +19,26 @@ param(
 $ErrorActionPreference = "Stop"
 
 $SourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$SkillSource = Join-Path $SourceRoot "skills\facbgnto-software-engineering"
 $ResolvedProject = [System.IO.Path]::GetFullPath($ProjectPath)
+$MainSkillSource = Join-Path $SourceRoot "skills\facbgnto-software-engineering"
+$SecuritySkillSource = Join-Path $SourceRoot "skills\facbgnto-security-review"
 
 if (-not (Test-Path $ResolvedProject)) {
     throw "No existe el proyecto: $ResolvedProject"
 }
 
-if (-not (Test-Path $SkillSource)) {
-    throw "No se encontró el skill fuente: $SkillSource"
+if (-not (Test-Path $MainSkillSource)) {
+    throw "No se encontró el skill principal: $MainSkillSource"
 }
 
 function Copy-Skill {
-    param([string]$Destination)
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Source,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Destination
+    )
 
     if ((Test-Path $Destination) -and -not $Force) {
         Write-Host "Ya existe: $Destination (usa -Force para reemplazar)" -ForegroundColor Yellow
@@ -43,197 +50,203 @@ function Copy-Skill {
     }
 
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Destination) | Out-Null
-    Copy-Item -Recurse -Force $SkillSource $Destination
+    Copy-Item -Recurse -Force $Source $Destination
     Write-Host "Instalado: $Destination" -ForegroundColor Green
 }
 
-Copy-Skill (Join-Path $ResolvedProject ".agents\skills\facbgnto-software-engineering")
-Copy-Skill (Join-Path $ResolvedProject ".claude\skills\facbgnto-software-engineering")
-Copy-Skill (Join-Path $ResolvedProject ".cursor\skills\facbgnto-software-engineering")
+function Copy-TemplateFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Source,
 
-$AgentsTemplate = Join-Path $SkillSource "templates\AGENTS.md"
-$AgentsDestination = Join-Path $ResolvedProject "AGENTS.md"
+        [Parameter(Mandatory = $true)]
+        [string]$Destination
+    )
 
-if (-not (Test-Path $AgentsDestination) -or $Force) {
-    Copy-Item -Force $AgentsTemplate $AgentsDestination
-    Write-Host "Creado: $AgentsDestination" -ForegroundColor Green
+    if ((Test-Path $Destination) -and -not $Force) {
+        Write-Host "Conservado: $Destination" -ForegroundColor DarkGray
+        return
+    }
+
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Destination) | Out-Null
+    Copy-Item -Force $Source $Destination
+    Write-Host "Creado: $Destination" -ForegroundColor Green
 }
-else {
-    Write-Host "AGENTS.md ya existe; no fue reemplazado." -ForegroundColor Yellow
+
+foreach ($base in @(".agents\skills", ".claude\skills", ".cursor\skills")) {
+    Copy-Skill `
+        -Source $MainSkillSource `
+        -Destination (Join-Path $ResolvedProject "$base\facbgnto-software-engineering")
 }
+
+Copy-TemplateFile `
+    -Source (Join-Path $MainSkillSource "templates\AGENTS.md") `
+    -Destination (Join-Path $ResolvedProject "AGENTS.md")
 
 $ExternalRoot = Join-Path $SourceRoot ".external"
 New-Item -ItemType Directory -Force -Path $ExternalRoot | Out-Null
 
 if ($InstallSuperpowers) {
-    $SuperpowersPath = Join-Path $ExternalRoot "superpowers"
-    if (Test-Path $SuperpowersPath) {
-        git -C $SuperpowersPath pull
+    $path = Join-Path $ExternalRoot "superpowers"
+    if (Test-Path (Join-Path $path ".git")) {
+        git -C $path pull --ff-only
     }
     else {
-        git clone https://github.com/obra/superpowers.git $SuperpowersPath
+        git clone https://github.com/obra/superpowers.git $path
     }
-    Write-Host "Superpowers descargado en $SuperpowersPath. Sigue su instalador oficial para tu agente." -ForegroundColor Cyan
 }
 
 if ($InstallAgentSkills) {
-    $AgentSkillsPath = Join-Path $ExternalRoot "agent-skills"
-    if (Test-Path $AgentSkillsPath) {
-        git -C $AgentSkillsPath pull
+    $path = Join-Path $ExternalRoot "agent-skills"
+    if (Test-Path (Join-Path $path ".git")) {
+        git -C $path pull --ff-only
     }
     else {
-        git clone https://github.com/addyosmani/agent-skills.git $AgentSkillsPath
+        git clone https://github.com/addyosmani/agent-skills.git $path
     }
-    Write-Host "Agent Skills descargado en $AgentSkillsPath." -ForegroundColor Cyan
 }
-
 
 if ($InstallUIUXProMax) {
     if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
-        throw "npm no está disponible. Instala Node.js antes de instalar UI/UX Pro Max."
+        throw "npm no está disponible. Instala Node.js."
     }
 
-    npm install -g uipro-cli
+    npm install -g uipro-cli@latest
 
     Push-Location $ResolvedProject
     try {
-        uipro init --ai codex
-        uipro init --ai claude
-        uipro init --ai cursor
+        foreach ($agent in @("codex", "claude", "cursor")) {
+            & uipro init --ai $agent
+            if ($LASTEXITCODE -ne 0) {
+                throw "Falló UI/UX Pro Max para $agent."
+            }
+        }
     }
     finally {
         Pop-Location
     }
-
-    Write-Host "UI/UX Pro Max instalado para Codex, Claude y Cursor." -ForegroundColor Cyan
 }
 
 if ($InstallEverythingClaudeCodeZH) {
-    $EverythingClaudePath = Join-Path $ExternalRoot "everything-claude-code-zh"
-
-    if (Test-Path $EverythingClaudePath) {
-        git -C $EverythingClaudePath pull
+    $path = Join-Path $ExternalRoot "everything-claude-code-zh"
+    if (Test-Path (Join-Path $path ".git")) {
+        git -C $path pull --ff-only
     }
     else {
-        git clone https://github.com/xu-xiang/everything-claude-code-zh.git $EverythingClaudePath
+        git clone https://github.com/xu-xiang/everything-claude-code-zh.git $path
     }
 
-    Write-Host "Everything Claude Code ZH descargado en $EverythingClaudePath." -ForegroundColor Cyan
-    Write-Host "No se copió automáticamente al proyecto para evitar conflictos con AGENTS.md, Superpowers y otros skills." -ForegroundColor Yellow
-    Write-Host "Consulta integrations/everything-claude-code-zh.md para una instalación selectiva." -ForegroundColor Yellow
+    Write-Host "Descargado en $path. Selecciona componentes para evitar reglas duplicadas." -ForegroundColor Yellow
 }
 
 if ($InstallLightRAG) {
-    $LightRAGPath = Join-Path $ExternalRoot "LightRAG"
-
-    if (Test-Path $LightRAGPath) {
-        git -C $LightRAGPath pull
+    $path = Join-Path $ExternalRoot "LightRAG"
+    if (Test-Path (Join-Path $path ".git")) {
+        git -C $path pull --ff-only
     }
     else {
-        git clone https://github.com/HKUDS/LightRAG.git $LightRAGPath
+        git clone https://github.com/HKUDS/LightRAG.git $path
     }
 
-    $LightRAGTemplateSource = Join-Path $SourceRoot "integrations\lightrag"
-    $LightRAGTemplateDestination = Join-Path $ResolvedProject "tools\lightrag"
-
-    if ((Test-Path $LightRAGTemplateDestination) -and -not $Force) {
-        Write-Host "Ya existe $LightRAGTemplateDestination; no se reemplazó." -ForegroundColor Yellow
+    $destination = Join-Path $ResolvedProject "tools\lightrag"
+    if ((Test-Path $destination) -and -not $Force) {
+        Write-Host "Conservado: $destination" -ForegroundColor DarkGray
     }
     else {
-        if (Test-Path $LightRAGTemplateDestination) {
-            Remove-Item -Recurse -Force $LightRAGTemplateDestination
+        if (Test-Path $destination) {
+            Remove-Item -Recurse -Force $destination
         }
-        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LightRAGTemplateDestination) | Out-Null
-        Copy-Item -Recurse -Force $LightRAGTemplateSource $LightRAGTemplateDestination
+
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+        Copy-Item -Recurse -Force (Join-Path $SourceRoot "integrations\lightrag") $destination
     }
-
-    Write-Host "LightRAG descargado y plantilla creada en tools\lightrag." -ForegroundColor Cyan
 }
-
 
 if ($InstallGraphify) {
     if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-        throw "uv no está instalado. Instálalo desde https://docs.astral.sh/uv/ y vuelve a ejecutar."
+        throw "uv no está instalado. Instálalo antes de Graphify."
     }
 
     if (Get-Command graphify -ErrorAction SilentlyContinue) {
-        Write-Host "Actualizando Graphify..." -ForegroundColor Cyan
         uv tool upgrade graphifyy
     }
     else {
-        Write-Host "Instalando Graphify..." -ForegroundColor Cyan
         uv tool install graphifyy
     }
 
-    $GraphifyIgnoreSource = Join-Path $SourceRoot "templates\.graphifyignore"
-    $GraphifyIgnoreDestination = Join-Path $ResolvedProject ".graphifyignore"
-
-    if (-not (Test-Path $GraphifyIgnoreDestination) -or $Force) {
-        Copy-Item -Force $GraphifyIgnoreSource $GraphifyIgnoreDestination
-        Write-Host "Creado: $GraphifyIgnoreDestination" -ForegroundColor Green
+    if ($LASTEXITCODE -ne 0) {
+        throw "No fue posible instalar o actualizar Graphify."
     }
+
+    Copy-TemplateFile `
+        -Source (Join-Path $SourceRoot "templates\.graphifyignore") `
+        -Destination (Join-Path $ResolvedProject ".graphifyignore")
 }
 
 if ($IndexGraphify) {
     if (-not (Get-Command graphify -ErrorAction SilentlyContinue)) {
-        throw "Graphify no está disponible. Usa también -InstallGraphify."
+        throw "Graphify no está disponible. Usa -InstallGraphify."
     }
 
-    $GraphScript = Join-Path $SourceRoot "graph.ps1"
-    & $GraphScript -ProjectPath $ResolvedProject -Force:$Force
+    & (Join-Path $SourceRoot "graph.ps1") `
+        -ProjectPath $ResolvedProject `
+        -Force:$Force
 }
-
 
 if ($InstallDocumentationTools) {
     if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
-        throw "npm no está disponible. Instala Node.js antes de instalar Mermaid CLI."
+        throw "npm no está disponible. Instala Node.js."
     }
 
-    Write-Host "Instalando o actualizando Mermaid CLI..." -ForegroundColor Cyan
     npm install -g @mermaid-js/mermaid-cli@latest
+    if ($LASTEXITCODE -ne 0) {
+        throw "No fue posible instalar Mermaid CLI."
+    }
 }
 
 if ($InitializeDocumentation) {
-    $DocsScript = Join-Path $SourceRoot "docs.ps1"
-    & $DocsScript -ProjectPath $ResolvedProject -RenderDiagrams:$InstallDocumentationTools
+    & (Join-Path $SourceRoot "docs.ps1") `
+        -ProjectPath $ResolvedProject `
+        -RenderDiagrams:$InstallDocumentationTools `
+        -Force:$Force
 }
 
-
 if ($InstallSecurity) {
-    $source = Join-Path $SourceRoot "skills\facbgnto-security-review"
-    foreach ($base in @(".agents\skills", ".claude\skills", ".cursor\skills")) {
-        $destination = Join-Path $ResolvedProject "$base\facbgnto-security-review"
-        if ((Test-Path $destination) -and -not $Force) {
-            Write-Host "Ya existe: $destination" -ForegroundColor Yellow
-        } else {
-            if (Test-Path $destination) { Remove-Item -Recurse -Force $destination }
-            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-            Copy-Item -Recurse -Force $source $destination
-        }
+    if (-not (Test-Path $SecuritySkillSource)) {
+        throw "No se encontró el skill de seguridad: $SecuritySkillSource"
     }
 
-    foreach ($item in @(
-        @{Source="templates\security\.gitleaks.toml";Target=".gitleaks.toml"},
-        @{Source="templates\security\.semgrep.yml";Target=".semgrep.yml"},
-        @{Source="templates\security\SECURITY.md";Target="SECURITY.md"}
-    )) {
-        $target = Join-Path $ResolvedProject $item.Target
-        if (-not(Test-Path $target) -or $Force) {
-            Copy-Item -Force (Join-Path $SourceRoot $item.Source) $target
-        }
+    foreach ($base in @(".agents\skills", ".claude\skills", ".cursor\skills")) {
+        Copy-Skill `
+            -Source $SecuritySkillSource `
+            -Destination (Join-Path $ResolvedProject "$base\facbgnto-security-review")
     }
-    New-Item -ItemType Directory -Force -Path (Join-Path $ResolvedProject "reports\agent-activity") | Out-Null
-    New-Item -ItemType Directory -Force -Path (Join-Path $ResolvedProject "reports\security") | Out-Null
+
+    Copy-TemplateFile `
+        -Source (Join-Path $SourceRoot "templates\security\.gitleaks.toml") `
+        -Destination (Join-Path $ResolvedProject ".gitleaks.toml")
+
+    Copy-TemplateFile `
+        -Source (Join-Path $SourceRoot "templates\security\.semgrep.yml") `
+        -Destination (Join-Path $ResolvedProject ".semgrep.yml")
+
+    Copy-TemplateFile `
+        -Source (Join-Path $SourceRoot "templates\security\SECURITY.md") `
+        -Destination (Join-Path $ResolvedProject "SECURITY.md")
+
+    New-Item -ItemType Directory -Force `
+        -Path (Join-Path $ResolvedProject "reports\agent-activity") | Out-Null
+
+    New-Item -ItemType Directory -Force `
+        -Path (Join-Path $ResolvedProject "reports\security") | Out-Null
 }
 
 if ($InstallSecurityWorkflow) {
-    $target = Join-Path $ResolvedProject ".github\workflows\security.yml"
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
-    if (-not(Test-Path $target) -or $Force) {
-        Copy-Item -Force (Join-Path $SourceRoot "templates\github\workflows\security.yml") $target
-    }
+    Copy-TemplateFile `
+        -Source (Join-Path $SourceRoot "templates\github\workflows\security.yml") `
+        -Destination (Join-Path $ResolvedProject ".github\workflows\security.yml")
 }
 
 Write-Host ""
 Write-Host "Instalación completada en: $ResolvedProject" -ForegroundColor Green
-Write-Host "Prueba: Usa el skill facbgnto-software-engineering para revisar este proyecto."
+Write-Host "Ejecuta doctor.ps1 para comprobar la instalación."

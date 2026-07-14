@@ -1,38 +1,68 @@
 param(
-  [Parameter(Mandatory=$true)][string]$ProjectPath,
-  [Parameter(Mandatory=$true)][string]$Skill,
-  [ValidateSet("start","finish","note")][string]$Action="note",
-  [string]$Reason=""
+    [Parameter(Mandatory = $true)]
+    [string]$ProjectPath,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Skill,
+
+    [ValidateSet("start", "finish", "note")]
+    [string]$Action = "note",
+
+    [string]$Reason = "",
+
+    [string[]]$Tools = @()
 )
 
-$ErrorActionPreference="Stop"
-$project=[System.IO.Path]::GetFullPath($ProjectPath)
-if(-not(Test-Path $project)){throw "No existe el proyecto: $project"}
+$ErrorActionPreference = "Stop"
+$ResolvedProject = [System.IO.Path]::GetFullPath($ProjectPath)
 
-$folder=Join-Path $project "reports\agent-activity"
-New-Item -ItemType Directory -Force -Path $folder | Out-Null
-$date=Get-Date -Format "yyyy-MM-dd"
-$time=Get-Date -Format "yyyy-MM-ddTHH-mm-ss"
-$file=Join-Path $folder "$date-skill-activity.md"
-$branch=""
-$commit=""
-
-if(Test-Path (Join-Path $project ".git")){
-  $branch=git -C $project branch --show-current 2>$null
-  $commit=git -C $project rev-parse --short HEAD 2>$null
+if (-not (Test-Path $ResolvedProject)) {
+    throw "No existe el proyecto: $ResolvedProject"
 }
 
-if(-not(Test-Path $file)){
-  "# Registro de actividad de skills — $date`n" | Set-Content $file -Encoding UTF8
+$ReportRoot = Join-Path $ResolvedProject "reports\agent-activity"
+New-Item -ItemType Directory -Force -Path $ReportRoot | Out-Null
+
+$Date = Get-Date -Format "yyyy-MM-dd"
+$Timestamp = Get-Date -Format "yyyy-MM-ddTHH-mm-ss"
+$ReportFile = Join-Path $ReportRoot "$Date-skill-activity.md"
+
+$Branch = ""
+$Commit = ""
+
+if (Test-Path (Join-Path $ResolvedProject ".git")) {
+    $Branch = (git -C $ResolvedProject branch --show-current 2>$null | Out-String).Trim()
+    $Commit = (git -C $ResolvedProject rev-parse --short HEAD 2>$null | Out-String).Trim()
 }
 
-@"
+if (-not (Test-Path $ReportFile)) {
+    Set-Content `
+        -Path $ReportFile `
+        -Encoding UTF8 `
+        -Value "# Registro de actividad de skills - $Date"
+}
 
-## $time — $Action
-- Skill: $Skill
-- Motivo: $Reason
-- Rama: $branch
-- Commit: $commit
-"@ | Add-Content $file -Encoding UTF8
+$ToolText = if ($Tools.Count -gt 0) {
+    $Tools -join ", "
+}
+else {
+    "No informado"
+}
 
-Write-Host "Actividad registrada: $file" -ForegroundColor Green
+$Entry = @(
+    "",
+    "## $Timestamp - $Action",
+    "",
+    "- Skill: $Skill",
+    "- Motivo: $Reason",
+    "- Rama: $Branch",
+    "- Commit: $Commit",
+    "- Herramientas: $ToolText"
+)
+
+Add-Content `
+    -Path $ReportFile `
+    -Encoding UTF8 `
+    -Value ($Entry -join [Environment]::NewLine)
+
+Write-Host "Actividad registrada: $ReportFile" -ForegroundColor Green
