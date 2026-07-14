@@ -11,6 +11,8 @@ param(
     [switch]$IndexGraphify,
     [switch]$InstallDocumentationTools,
     [switch]$InitializeDocumentation,
+    [switch]$InstallSecurity,
+    [switch]$InstallSecurityWorkflow,
     [switch]$Force
 )
 
@@ -194,6 +196,42 @@ if ($InstallDocumentationTools) {
 if ($InitializeDocumentation) {
     $DocsScript = Join-Path $SourceRoot "docs.ps1"
     & $DocsScript -ProjectPath $ResolvedProject -RenderDiagrams:$InstallDocumentationTools
+}
+
+
+if ($InstallSecurity) {
+    $source = Join-Path $SourceRoot "skills\facbgnto-security-review"
+    foreach ($base in @(".agents\skills", ".claude\skills", ".cursor\skills")) {
+        $destination = Join-Path $ResolvedProject "$base\facbgnto-security-review"
+        if ((Test-Path $destination) -and -not $Force) {
+            Write-Host "Ya existe: $destination" -ForegroundColor Yellow
+        } else {
+            if (Test-Path $destination) { Remove-Item -Recurse -Force $destination }
+            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+            Copy-Item -Recurse -Force $source $destination
+        }
+    }
+
+    foreach ($item in @(
+        @{Source="templates\security\.gitleaks.toml";Target=".gitleaks.toml"},
+        @{Source="templates\security\.semgrep.yml";Target=".semgrep.yml"},
+        @{Source="templates\security\SECURITY.md";Target="SECURITY.md"}
+    )) {
+        $target = Join-Path $ResolvedProject $item.Target
+        if (-not(Test-Path $target) -or $Force) {
+            Copy-Item -Force (Join-Path $SourceRoot $item.Source) $target
+        }
+    }
+    New-Item -ItemType Directory -Force -Path (Join-Path $ResolvedProject "reports\agent-activity") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $ResolvedProject "reports\security") | Out-Null
+}
+
+if ($InstallSecurityWorkflow) {
+    $target = Join-Path $ResolvedProject ".github\workflows\security.yml"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+    if (-not(Test-Path $target) -or $Force) {
+        Copy-Item -Force (Join-Path $SourceRoot "templates\github\workflows\security.yml") $target
+    }
 }
 
 Write-Host ""

@@ -48,3 +48,17 @@ Antes de finalizar:
 - No hagas `push`, merge, rebase destructivo ni elimines ramas sin autorización.
 - No descartes cambios locales del usuario.
 - Prefiere commits pequeños y descriptivos cuando se soliciten.
+
+## Activación y evidencia de skills
+
+En tareas significativas:
+
+1. Declara qué skills se activaron y por qué.
+2. Registra inicio y término en `reports/agent-activity/`.
+3. En la respuesta final incluye `Skills utilizados`, `Herramientas ejecutadas` y `Validaciones`.
+4. No declares como utilizado un skill cuyas instrucciones no seguiste.
+5. Activa `facbgnto-security-review` para autenticación, autorización, datos sensibles, archivos, pagos, endpoints públicos, dependencias o despliegue.
+
+## Revisión mínima de seguridad
+
+Revisa autorización, aislamiento de tenant, entradas, datos expuestos, secretos, logs y nuevos puntos de entrada.

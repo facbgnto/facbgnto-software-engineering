@@ -91,6 +91,12 @@ facbgnto-software-engineering/
 ├── docs.sh
 ├── diagrams.ps1
 ├── diagrams.sh
+├── security.ps1
+├── security.sh
+├── skill-scan.ps1
+├── skill-scan.sh
+├── skill-activity.ps1
+├── skill-activity.sh
 ├── templates/
 │   └── .graphifyignore
 ├── skills/
@@ -477,6 +483,53 @@ Se crean plantillas para:
 - decisiones arquitectónicas ADR.
 
 Para arquitectura C4 formal también se incluye una plantilla `workspace.dsl` para Structurizr.
+
+
+# 🛡️ Seguridad y trazabilidad
+
+Instalar el skill y configuraciones:
+
+```powershell
+.\install.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -InstallSecurity `
+  -InstallSecurityWorkflow
+```
+
+Ejecutar revisión:
+
+```powershell
+.\security.ps1 `
+  -ProjectPath "C:\repositorio\mi-proyecto" `
+  -RunGitleaks `
+  -RunSemgrep `
+  -RunDependencyAudit `
+  -GenerateReport
+```
+
+## ¿Cómo saber si se usó un skill?
+
+Un skill instalado no significa que fue utilizado. La evidencia queda en:
+
+```text
+reports/
+├── agent-activity/
+└── security/
+```
+
+La respuesta final del agente debe declarar:
+
+```text
+Skills utilizados:
+- facbgnto-software-engineering
+- facbgnto-security-review
+
+Herramientas ejecutadas:
+- Graphify
+- Gitleaks
+- Semgrep
+- auditoría de dependencias
+```
 
 # 🔐 Seguridad
 

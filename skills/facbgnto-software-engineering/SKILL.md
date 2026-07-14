@@ -232,6 +232,12 @@ Para tareas significativas:
 - Ejecuta `diagrams.ps1 -CheckOnly` o `diagrams.sh` antes de finalizar.
 - No generes diagramas inventados: deben reflejar archivos, infraestructura y contratos inspeccionados.
 
+## Seguridad coordinada
+
+Activa `facbgnto-security-review` cuando el cambio afecte autenticación, autorización, datos sensibles, archivos, pagos, endpoints públicos, dependencias o despliegue.
+
+Registra los skills realmente utilizados en `reports/agent-activity/`.
+
 ## Salida final
 
 Entrega:

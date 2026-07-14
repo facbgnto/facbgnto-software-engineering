@@ -2,3 +2,7 @@
 *.log
 .DS_Store
 Thumbs.db
+
+# Informes locales
+reports/agent-activity/
+reports/security/
