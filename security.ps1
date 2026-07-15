@@ -155,9 +155,9 @@ if ($GenerateReport -or $Results.Count -gt 0) {
             "- Comando: ``$($Result.Command)``",
             "- Código de salida: $($Result.ExitCode)",
             "",
-            "```text",
+            '```text',
             $SafeOutput.Trim(),
-            "```"
+            '```'
         )
     }
 

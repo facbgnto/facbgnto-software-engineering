@@ -6,11 +6,12 @@ param(
     [switch]$Force
 )
 $ErrorActionPreference="Stop"
+$HeadroomVersion = "0.31.0"
+$HeadroomPackage = "headroom-ai[all]==$HeadroomVersion"
 function Run([string]$Text,[scriptblock]$Action){ if($DryRun){Write-Host "[DRY-RUN] $Text" -ForegroundColor Cyan}else{& $Action} }
 if(-not(Get-Command uv -ErrorAction SilentlyContinue)){throw "Headroom requiere uv. Instala uv y vuelve a ejecutar."}
-Run "uv tool install/upgrade headroom-ai[all]" {
-    if(Get-Command headroom -ErrorAction SilentlyContinue){ uv tool upgrade headroom-ai }
-    else{ uv tool install --python 3.13 "headroom-ai[all]" }
+Run "uv tool install $HeadroomPackage" {
+    uv tool install --python 3.13 --reinstall $HeadroomPackage
     if($LASTEXITCODE -ne 0){throw "Falló la instalación de Headroom."}
 }
 $configDir=Join-Path $ProjectPath ".facbgnto"
@@ -19,6 +20,7 @@ if((Test-Path $configFile)-and-not$Force){Write-Host "Conservado: $configFile" -
     $shaper=if($EnableOutputShaper){"1"}else{"0"}
     $content=@"
 # FACBGNTO Headroom
+HEADROOM_VERSION=$HeadroomVersion
 HEADROOM_OUTPUT_SHAPER=$shaper
 HEADROOM_OUTPUT_HOLDOUT=0.1
 HEADROOM_UPDATE_CHECK=on

@@ -2,7 +2,7 @@
 
 ## Responsabilidades
 
-- Headroom: comprime el contexto de entrada y resultados de herramientas.
+- Headroom `0.31.0`: comprime el contexto de entrada y resultados de herramientas.
 - Caveman: reduce la verbosidad de la salida.
 - No activar simultáneamente Caveman y `HEADROOM_OUTPUT_SHAPER=1` salvo que se haya medido el resultado.
 
@@ -23,6 +23,7 @@ Nunca comprimir ni reescribir de forma destructiva:
 ## Configuración recomendada
 
 - Headroom habilitado.
+- Version fijada en `HEADROOM_VERSION=0.31.0`.
 - Headroom output shaper deshabilitado.
 - Caveman `lite`.
 - Holdout de Headroom en 10% para medir ahorro real.

@@ -13,6 +13,7 @@ Copiar estos archivos en la raíz de `facbgnto-software-engineering` respetando 
 
 - `integrations/headroom/*`
 - `integrations/caveman/*`
+- `integrations/deportivox-skills.md`
 - `integrations/token-optimization.md`
 - `templates/token-optimization/*`
 

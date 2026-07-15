@@ -1,4 +1,8 @@
-param([string]$ProjectPath)
+param(
+    [string]$ProjectPath,
+    [ValidateSet("Default", "Deportivox")]
+    [string]$Profile = "Default"
+)
 $ErrorActionPreference = "Continue"
 $failed = $false
 
@@ -50,6 +54,52 @@ if ($ProjectPath) {
         foreach ($check in $checks) {
             if (Test-Path $check.Path) { Write-Host "[OK] $($check.Name)" -ForegroundColor Green }
             else { Write-Host "[WARN] Falta $($check.Name)" -ForegroundColor Yellow }
+        }
+
+        if ($Profile -eq "Deportivox") {
+            Write-Host ""; Write-Host "Perfil Deportivox" -ForegroundColor Cyan
+            $deportivoxChecks = @(
+                @{ Name = ".agents facbgnto-security-review"; Path = (Join-Path $ResolvedProject ".agents\skills\facbgnto-security-review\SKILL.md") },
+                @{ Name = ".agents facbgnto-software-engineering"; Path = (Join-Path $ResolvedProject ".agents\skills\facbgnto-software-engineering\SKILL.md") },
+                @{ Name = ".claude facbgnto-security-review"; Path = (Join-Path $ResolvedProject ".claude\skills\facbgnto-security-review\SKILL.md") },
+                @{ Name = ".claude facbgnto-software-engineering"; Path = (Join-Path $ResolvedProject ".claude\skills\facbgnto-software-engineering\SKILL.md") },
+                @{ Name = ".claude frontend-ui-engineering"; Path = (Join-Path $ResolvedProject ".claude\skills\frontend-ui-engineering\SKILL.md") },
+                @{ Name = ".claude graphify"; Path = (Join-Path $ResolvedProject ".claude\skills\graphify\SKILL.md") }
+            )
+            foreach ($check in $deportivoxChecks) {
+                if (Test-Path $check.Path) { Write-Host "[OK] $($check.Name)" -ForegroundColor Green }
+                else { Write-Host "[WARN] Falta $($check.Name)" -ForegroundColor Yellow }
+            }
+
+            $headroomEnv = Join-Path $ResolvedProject ".facbgnto\headroom.env"
+            if ((Test-Path $headroomEnv) -and ((Get-Content $headroomEnv) -contains "HEADROOM_VERSION=0.31.0")) {
+                Write-Host "[OK] Headroom 0.31.0 configurado" -ForegroundColor Green
+            }
+            else {
+                Write-Host "[WARN] Falta HEADROOM_VERSION=0.31.0 en .facbgnto\headroom.env" -ForegroundColor Yellow
+            }
+
+            $codexSkillsRoot = "C:\Users\Socius\.codex\skills"
+            foreach ($skill in @(
+                "api-and-interface-design", "api-design", "backend-patterns", "banner-design", "brand",
+                "browser-testing-with-devtools", "ci-cd-and-automation", "code-review-and-quality",
+                "code-simplification", "coding-standards", "context-engineering", "database-migrations",
+                "debugging-and-error-recovery", "deployment-patterns", "deprecation-and-migration",
+                "design", "design-system", "docker-patterns", "documentation-and-adrs",
+                "doubt-driven-development", "e2e-testing", "facbgnto-security-review",
+                "facbgnto-software-engineering", "frontend-patterns", "frontend-ui-engineering",
+                "git-workflow-and-versioning", "idea-refine", "incremental-implementation",
+                "interview-me", "iterative-retrieval", "observability-and-instrumentation",
+                "performance-optimization", "planning-and-task-breakdown", "postgres-patterns",
+                "search-first", "security-and-hardening", "security-review", "security-scan",
+                "shipping-and-launch", "slides", "source-driven-development", "spec-driven-development",
+                "tdd-workflow", "test-driven-development", "ui-styling", "ui-ux-pro-max",
+                "using-agent-skills", "verification-loop"
+            )) {
+                $skillPath = Join-Path $codexSkillsRoot $skill
+                if (Test-Path $skillPath) { Write-Host "[OK] Codex global $skill" -ForegroundColor Green }
+                else { Write-Host "[WARN] Falta Codex global $skill" -ForegroundColor Yellow }
+            }
         }
     }
 }
