@@ -1,0 +1,13 @@
+{
+  "level": "lite",
+  "preserve": [
+    "code",
+    "commands",
+    "paths",
+    "urls",
+    "sql",
+    "errors",
+    "security-evidence",
+    "test-results"
+  ]
+}
