@@ -525,6 +525,7 @@ La respuesta final del agente debe declarar:
 Skills utilizados:
 - facbgnto-software-engineering
 - facbgnto-security-review
+- security-storage
 
 Herramientas ejecutadas:
 - Graphify

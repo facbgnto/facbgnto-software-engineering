@@ -48,6 +48,7 @@ if ($ProjectPath) {
             @{ Name = "Skill Codex/Agents"; Path = (Join-Path $ResolvedProject ".agents\skills\facbgnto-software-engineering\SKILL.md") },
             @{ Name = "Skill Claude"; Path = (Join-Path $ResolvedProject ".claude\skills\facbgnto-software-engineering\SKILL.md") },
             @{ Name = "Skill Cursor"; Path = (Join-Path $ResolvedProject ".cursor\skills\facbgnto-software-engineering\SKILL.md") },
+            @{ Name = "Security Storage Auditor"; Path = (Join-Path $ResolvedProject ".agents\skills\security-storage\SKILL.md") },
             @{ Name = "Configuración Headroom"; Path = (Join-Path $ResolvedProject ".facbgnto\headroom.env") },
             @{ Name = "Configuración Caveman"; Path = (Join-Path $ResolvedProject ".facbgnto\caveman.json") }
         )
@@ -60,8 +61,10 @@ if ($ProjectPath) {
             Write-Host ""; Write-Host "Perfil Deportivox" -ForegroundColor Cyan
             $deportivoxChecks = @(
                 @{ Name = ".agents facbgnto-security-review"; Path = (Join-Path $ResolvedProject ".agents\skills\facbgnto-security-review\SKILL.md") },
+                @{ Name = ".agents security-storage"; Path = (Join-Path $ResolvedProject ".agents\skills\security-storage\SKILL.md") },
                 @{ Name = ".agents facbgnto-software-engineering"; Path = (Join-Path $ResolvedProject ".agents\skills\facbgnto-software-engineering\SKILL.md") },
                 @{ Name = ".claude facbgnto-security-review"; Path = (Join-Path $ResolvedProject ".claude\skills\facbgnto-security-review\SKILL.md") },
+                @{ Name = ".claude security-storage"; Path = (Join-Path $ResolvedProject ".claude\skills\security-storage\SKILL.md") },
                 @{ Name = ".claude facbgnto-software-engineering"; Path = (Join-Path $ResolvedProject ".claude\skills\facbgnto-software-engineering\SKILL.md") },
                 @{ Name = ".claude frontend-ui-engineering"; Path = (Join-Path $ResolvedProject ".claude\skills\frontend-ui-engineering\SKILL.md") },
                 @{ Name = ".claude graphify"; Path = (Join-Path $ResolvedProject ".claude\skills\graphify\SKILL.md") }

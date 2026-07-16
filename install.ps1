@@ -30,6 +30,7 @@ $SourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ResolvedProject = [System.IO.Path]::GetFullPath($ProjectPath)
 $MainSkillSource = Join-Path $SourceRoot "skills\facbgnto-software-engineering"
 $SecuritySkillSource = Join-Path $SourceRoot "skills\facbgnto-security-review"
+$SecurityStorageSkillSource = Join-Path $SourceRoot "skills\security-storage"
 
 if (-not (Test-Path $ResolvedProject)) { throw "No existe el proyecto: $ResolvedProject" }
 if (-not (Test-Path $MainSkillSource)) { throw "No se encontró el skill principal: $MainSkillSource" }
@@ -156,8 +157,10 @@ if ($InitializeDocumentation) {
 
 if ($InstallSecurity) {
     if (-not (Test-Path $SecuritySkillSource)) { throw "No se encontró el skill de seguridad: $SecuritySkillSource" }
+    if (-not (Test-Path $SecurityStorageSkillSource)) { throw "No se encontro el skill de storage seguro: $SecurityStorageSkillSource" }
     foreach ($base in @(".agents\skills", ".claude\skills", ".cursor\skills")) {
         Copy-Skill -Source $SecuritySkillSource -Destination (Join-Path $ResolvedProject "$base\facbgnto-security-review")
+        Copy-Skill -Source $SecurityStorageSkillSource -Destination (Join-Path $ResolvedProject "$base\security-storage")
     }
     Copy-TemplateFile -Source (Join-Path $SourceRoot "templates\security\.gitleaks.toml") -Destination (Join-Path $ResolvedProject ".gitleaks.toml")
     Copy-TemplateFile -Source (Join-Path $SourceRoot "templates\security\.semgrep.yml") -Destination (Join-Path $ResolvedProject ".semgrep.yml")

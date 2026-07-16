@@ -7,11 +7,13 @@ Este perfil documenta el inventario esperado para que Deportivox use las skills 
 En `.agents/skills`:
 
 - `facbgnto-security-review`
+- `security-storage`
 - `facbgnto-software-engineering`
 
 En `.claude/skills`:
 
 - `facbgnto-security-review`
+- `security-storage`
 - `facbgnto-software-engineering`
 - `frontend-ui-engineering`
 - `graphify`

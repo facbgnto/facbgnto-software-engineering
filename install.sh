@@ -26,6 +26,7 @@ fi
 SOURCE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAIN_SKILL="$SOURCE_ROOT/skills/facbgnto-software-engineering"
 SECURITY_SKILL="$SOURCE_ROOT/skills/facbgnto-security-review"
+SECURITY_STORAGE_SKILL="$SOURCE_ROOT/skills/security-storage"
 
 run() {
   if [[ "$DRY_RUN" == "true" ]]; then printf '[DRY-RUN]'; printf ' %q' "$@"; printf '\n';
@@ -69,7 +70,11 @@ if [[ "$INITIALIZE_DOCUMENTATION" == "true" ]]; then
 fi
 if [[ "$INSTALL_SECURITY" == "true" ]]; then
   [[ -d "$SECURITY_SKILL" ]] || { echo "No se encontró: $SECURITY_SKILL"; exit 1; }
-  for base in .agents/skills .claude/skills .cursor/skills; do copy_skill "$SECURITY_SKILL" "$PROJECT_PATH/$base/facbgnto-security-review"; done
+  [[ -d "$SECURITY_STORAGE_SKILL" ]] || { echo "No se encontro: $SECURITY_STORAGE_SKILL"; exit 1; }
+  for base in .agents/skills .claude/skills .cursor/skills; do
+    copy_skill "$SECURITY_SKILL" "$PROJECT_PATH/$base/facbgnto-security-review"
+    copy_skill "$SECURITY_STORAGE_SKILL" "$PROJECT_PATH/$base/security-storage"
+  done
   copy_file "$SOURCE_ROOT/templates/security/.gitleaks.toml" "$PROJECT_PATH/.gitleaks.toml"
   copy_file "$SOURCE_ROOT/templates/security/.semgrep.yml" "$PROJECT_PATH/.semgrep.yml"
   copy_file "$SOURCE_ROOT/templates/security/SECURITY.md" "$PROJECT_PATH/SECURITY.md"

@@ -18,6 +18,7 @@ if [[ -n "$PROJECT_PATH" ]]; then
       ".agents/skills/facbgnto-software-engineering/SKILL.md:Skill Codex/Agents" \
       ".claude/skills/facbgnto-software-engineering/SKILL.md:Skill Claude" \
       ".cursor/skills/facbgnto-software-engineering/SKILL.md:Skill Cursor" \
+      ".agents/skills/security-storage/SKILL.md:Security Storage Auditor" \
       ".facbgnto/headroom.env:Configuración Headroom" \
       ".facbgnto/caveman.json:Configuración Caveman"; do
       path="${entry%%:*}"; name="${entry#*:}"; [[ -f "$PROJECT_PATH/$path" ]] && echo "[OK] $name" || echo "[WARN] Falta $name"
@@ -26,8 +27,10 @@ if [[ -n "$PROJECT_PATH" ]]; then
       echo; echo "Perfil Deportivox"
       for entry in \
         ".agents/skills/facbgnto-security-review/SKILL.md:.agents facbgnto-security-review" \
+        ".agents/skills/security-storage/SKILL.md:.agents security-storage" \
         ".agents/skills/facbgnto-software-engineering/SKILL.md:.agents facbgnto-software-engineering" \
         ".claude/skills/facbgnto-security-review/SKILL.md:.claude facbgnto-security-review" \
+        ".claude/skills/security-storage/SKILL.md:.claude security-storage" \
         ".claude/skills/facbgnto-software-engineering/SKILL.md:.claude facbgnto-software-engineering" \
         ".claude/skills/frontend-ui-engineering/SKILL.md:.claude frontend-ui-engineering" \
         ".claude/skills/graphify/SKILL.md:.claude graphify"; do
